@@ -375,8 +375,8 @@
 //     </Box>
 //   );
 // }
-
 "use client";
+
 import { useState, useEffect } from "react";
 import {
   Box,
@@ -391,13 +391,7 @@ import {
   Chip,
   Avatar,
 } from "@mui/material";
-import {
-  CheckCircle,
-  Pending,
-  Medication,
-  Factory,
-  LocalHospital,
-} from "@mui/icons-material";
+import { CheckCircle, Pending, Medication, Factory, LocalHospital } from "@mui/icons-material";
 import { useParams, useSearchParams } from "next/navigation";
 
 const API_BASE = process.env.NEXT_PUBLIC_BE_API_BASE || "";
@@ -409,6 +403,7 @@ interface StorageCondition {
   humidity?: string;
   type?: string;
 }
+
 interface ActiveIngredient {
   _id: string;
   name: string;
@@ -416,11 +411,13 @@ interface ActiveIngredient {
   route?: string;
   storageConditions?: StorageCondition[];
 }
+
 interface LicenseDocumentImage {
   public_id: string;
   hash: string;
   _id: string;
 }
+
 interface LicenseDocument {
   _id: string;
   name: string;
@@ -431,6 +428,7 @@ interface LicenseDocument {
   expiryDate?: string;
   createdAt?: string;
 }
+
 interface Product {
   _id: string;
   productCode: string;
@@ -445,6 +443,7 @@ interface Product {
   activeIngredient?: ActiveIngredient[];
   categoryIds?: string[];
 }
+
 interface Manufacturer {
   _id: string;
   name: string;
@@ -454,6 +453,7 @@ interface Manufacturer {
   images?: string[];
   licenseDocuments?: LicenseDocument[];
 }
+
 interface Batch {
   _id: string;
   batchCode: string;
@@ -463,10 +463,12 @@ interface Batch {
   EXP?: string;
   manufacturer?: Manufacturer;
 }
+
 interface Category {
   _id: string;
   name: string;
 }
+
 interface Hospital {
   _id: string;
   name: string;
@@ -475,6 +477,7 @@ interface Hospital {
   images?: string[];
   companyCode?: string;
 }
+
 interface TraceResponse {
   product: Product;
   batch: Batch;
@@ -482,24 +485,25 @@ interface TraceResponse {
   hospitals?: Hospital[];
   categories?: Category[];
 }
+
 interface BackendTraceResponse {
   success: boolean;
   message: string;
   data?: TraceResponse;
 }
 
-// ===== Page Component =====
 export default function TracePage() {
-   const params = useParams(); // ✅ hook trả về { batchCode: "..." }
-  const searchParams = useSearchParams(); // ✅ hook trả về đối tượng URLSearchParams
+  const params = useParams(); // -> { batchCode: "12345" }
+  const searchParams = useSearchParams(); // -> URLSearchParams object
 
-  const batchCode = params?.batchCode as string; // ép kiểu an toàn
+  const batchCode = (params?.batchCode as string) || ""; // ✅ tránh null
   const token = searchParams?.get("token") || "";
 
   const [data, setData] = useState<TraceResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // ✅ chỉ fetch khi có batchCode (tránh fetch rỗng)
     if (!batchCode) return;
 
     fetch(`${API_BASE}/api/traceability`, {
@@ -513,9 +517,10 @@ export default function TracePage() {
       })
       .catch((err) => console.error("Fetch trace error:", err))
       .finally(() => setLoading(false));
-  }, [batchCode, token]);
+  }, [batchCode, token]); // ✅ dùng batchCode thay vì params.batchCode
 
-  if (loading)
+
+  if (loading) {
     return (
       <Box p={4}>
         <Skeleton variant="text" height={50} width="60%" />
@@ -523,8 +528,9 @@ export default function TracePage() {
         <Skeleton variant="rectangular" height={200} sx={{ my: 2 }} />
       </Box>
     );
+  }
 
-  if (!data)
+  if (!data) {
     return (
       <Box p={4} textAlign="center">
         <Typography variant="h6" color="text.secondary">
@@ -532,32 +538,33 @@ export default function TracePage() {
         </Typography>
       </Box>
     );
+  }
 
   const { product, batch, hospitals, categories } = data;
 
-  const renderPrimaryImage = (
-    imagePrimary?: string,
-    fallbackImages?: string[]
-  ) => {
-    const imageSrc = imagePrimary
+  // ===== Render Functions =====
+  const renderPrimaryImage = (imagePrimary?: string, fallbackImages?: string[]) => {
+  const imageSrc =
+    imagePrimary
       ? `${API_BASE}/api/upload/${imagePrimary}`
-      : fallbackImages?.length
+      : fallbackImages && fallbackImages.length > 0
       ? `${API_BASE}/api/upload/${fallbackImages[0]}`
       : "/no-image.png";
-    return (
-      <Box mt={1} textAlign="center">
-        <Avatar
-          src={imageSrc}
-          alt="Ảnh đại diện"
-          variant="rounded"
-          sx={{ width: 160, height: 120 }}
-        />
-      </Box>
-    );
-  };
+
+  return (
+    <Box mt={1} textAlign="center">
+      <Avatar
+        src={imageSrc}
+        alt="Ảnh đại diện"
+        variant="rounded"
+        sx={{ width: 160, height: 120 }}
+      />
+    </Box>
+  );
+};
 
   const renderImages = (images?: string[]) => {
-    if (!images?.length) return null;
+    if (!images || !images.length) return null;
     return (
       <Stack direction="row" spacing={1} mt={1} flexWrap="wrap">
         {images.map((img, idx) => (
@@ -566,74 +573,52 @@ export default function TracePage() {
             component="img"
             src={`${API_BASE}/api/upload/${img}`}
             alt="image"
-            sx={{
-              width: 80,
-              height: 80,
-              objectFit: "cover",
-              borderRadius: 1,
-              border: "1px solid #ddd",
-            }}
+            sx={{ width: 80, height: 80, objectFit: "cover", borderRadius: 1, border: "1px solid #ddd" }}
           />
         ))}
       </Stack>
     );
   };
 
-  const categoryNames = product.categoryIds?.map((id) => {
-    const cat = categories?.find((c) => c._id === id);
+  const categoryNames = product.categoryIds?.map(id => {
+    const cat = categories?.find(c => c._id === id);
     return cat ? cat.name : id;
   });
 
+  // ===== Stepper Steps =====
   const steps = [
     {
       label: "Sản phẩm",
       content: (
         <Stack spacing={1}>
           {renderPrimaryImage(product.imagePrimary)}
-          <Typography>
-            <strong>Tên:</strong> {product.name}
-          </Typography>
-          <Typography>
-            <strong>Mã SP:</strong> {product.productCode}
-          </Typography>
-          {product.description && (
-            <Typography>
-              <strong>Mô tả:</strong> {product.description}
-            </Typography>
-          )}
+          <Typography><strong>Tên:</strong> {product.name}</Typography>
+          <Typography><strong>Mã SP:</strong> {product.productCode}</Typography>
+          {product.description && <Typography><strong>Mô tả:</strong> {product.description}</Typography>}
           {product.uom && product.uomQuantity && (
-            <Typography>
-              <strong>Đơn vị:</strong> {product.uom}, SL/đơn vị:{" "}
-              {product.uomQuantity}
-            </Typography>
+            <Typography><strong>Đơn vị:</strong> {product.uom}, Số lượng/đơn vị: {product.uomQuantity}</Typography>
           )}
-          {product.gtin && (
-            <Typography>
-              <strong>GTIN:</strong> {product.gtin}
-            </Typography>
-          )}
-          {product.txHash && (
-            <Typography>
-              <strong>TxHash:</strong> {product.txHash}
-            </Typography>
-          )}
+          {product.gtin && <Typography><strong>GTIN:</strong> {product.gtin}</Typography>}
+          {product.txHash && <Typography><strong>TxHash:</strong> {product.txHash}</Typography>}
           {categoryNames?.length && (
-            <Typography>
-              <strong>Danh mục:</strong> {categoryNames.join(", ")}
-            </Typography>
+            <Typography><strong>Danh mục:</strong> {categoryNames.join(", ")}</Typography>
           )}
           {product.activeIngredient?.length && (
             <>
-              <Typography>
-                <strong>Hoạt chất:</strong>
-              </Typography>
+              <Typography><strong>Hoạt chất:</strong></Typography>
               {product.activeIngredient.map((ai) => (
                 <Box key={ai._id} ml={2} mb={1}>
-                  <Typography>
-                    - {ai.name} {ai.strength && `(${ai.strength})`}
-                  </Typography>
-                  {ai.route && (
-                    <Typography ml={2}>Route: {ai.route}</Typography>
+                  <Typography>- {ai.name} {ai.strength && `(${ai.strength})`}</Typography>
+                  {ai.route && <Typography ml={2}>Route: {ai.route}</Typography>}
+                  {ai.storageConditions?.length && (
+                    <Box ml={2}>
+                      <Typography>Điều kiện bảo quản:</Typography>
+                      {ai.storageConditions.map((sc) => (
+                        <Typography key={sc._id} ml={2}>
+                          {sc.type} {sc.temperature && `- Temp: ${sc.temperature}`} {sc.humidity && `- Humidity: ${sc.humidity}`}
+                        </Typography>
+                      ))}
+                    </Box>
                   )}
                 </Box>
               ))}
@@ -652,34 +637,59 @@ export default function TracePage() {
             color={batch.state === "delivering" ? "success" : "warning"}
             icon={batch.state === "delivering" ? <CheckCircle /> : <Pending />}
           />
-          <Typography>
-            <strong>Số lượng ban đầu:</strong> {batch.initialQuantity}
-          </Typography>
-          {batch.manufactureDate && (
-            <Typography>
-              <strong>Ngày SX:</strong>{" "}
-              {new Date(batch.manufactureDate).toLocaleDateString()}
-            </Typography>
-          )}
-          {batch.EXP && (
-            <Typography>
-              <strong>HSD:</strong> {new Date(batch.EXP).toLocaleDateString()}
-            </Typography>
-          )}
+          <Typography><strong>Số lượng ban đầu:</strong> {batch.initialQuantity}</Typography>
+          {batch.manufactureDate && <Typography><strong>Ngày SX:</strong> {new Date(batch.manufactureDate).toLocaleDateString()}</Typography>}
+          {batch.EXP && <Typography><strong>HSD:</strong> {new Date(batch.EXP).toLocaleDateString()}</Typography>}
         </Stack>
       ),
+    },
+    {
+  label: "Nhà sản xuất",
+  content: data.manufacturer ? (
+    <Stack spacing={1}>
+      <Typography><strong>Tên:</strong> {data.manufacturer.name}</Typography>
+      <Typography><strong>Mã công ty:</strong> {data.manufacturer.companyCode}</Typography>
+      {data.manufacturer.location && <Typography><strong>Địa chỉ:</strong> {data.manufacturer.location}</Typography>}
+      {data.manufacturer.phone && <Typography><strong>Điện thoại:</strong> {data.manufacturer.phone}</Typography>}
+      {data.manufacturer.licenseDocuments?.length && (
+        <>
+          <Typography><strong>Giấy phép:</strong></Typography>
+          {data.manufacturer.licenseDocuments.map(ld => (
+            <Box key={ld._id} ml={2} mb={1}>
+              <Typography>- {ld.name} (Type: {ld.type}, LicenseID: {ld.licenseId})</Typography>
+              {ld.txHash && <Typography ml={2}>TxHash: {ld.txHash}</Typography>}
+              {ld.expiryDate && <Typography ml={2}>Expiry: {new Date(ld.expiryDate).toLocaleDateString()}</Typography>}
+              {ld.createdAt && <Typography ml={2}>Ngày cấp: {new Date(ld.createdAt).toLocaleDateString()}</Typography>}
+              {ld.images?.length && renderImages(ld.images.map(i => i.public_id))}
+            </Box>
+          ))}
+        </>
+      )}
+      {renderImages(data.manufacturer.images)}
+    </Stack>
+  ) : "Chưa có thông tin nhà sản xuất",
+}
+,
+    {
+      label: "Bệnh viện",
+      content: hospitals?.length ? (
+        <Stack spacing={1}>
+          {hospitals.map(h => (
+            <Box key={h._id} mb={1}>
+              <Typography><strong>{h.name}</strong> ({h.companyCode})</Typography>
+              {h.location && <Typography ml={2}>Địa chỉ: {h.location}</Typography>}
+              {h.phone && <Typography ml={2}>Điện thoại: {h.phone}</Typography>}
+              {renderImages(h.images)}
+            </Box>
+          ))}
+        </Stack>
+      ) : "Chưa có bệnh viện",
     },
   ];
 
   return (
     <Box sx={{ p: 4, maxWidth: 900, mx: "auto" }}>
-      <Typography
-        variant="h4"
-        fontWeight="bold"
-        mb={3}
-        textAlign="center"
-        sx={{ color: "#0288d1" }}
-      >
+      <Typography variant="h4" fontWeight="bold" mb={3} textAlign="center" sx={{ color: "#0288d1" }}>
         🔍 Truy xuất lô: {batch.batchCode}
       </Typography>
 
@@ -687,19 +697,12 @@ export default function TracePage() {
         {steps.map((step) => (
           <Step key={step.label} completed>
             <StepLabel
-              icon={
-                step.label === "Sản phẩm" ? <Medication /> : <CheckCircle />
-              }
-              sx={{
-                "& .MuiStepLabel-label": { typography: "h6", color: "#0288d1" },
-              }}
+              icon={step.label === "Sản phẩm" ? <Medication /> : step.label === "Lô" ? <CheckCircle /> : step.label === "Nhà sản xuất" ? <Factory /> : <LocalHospital />}
+              sx={{ "& .MuiStepLabel-label": { typography: "h6", color: "#0288d1" } }}
             >
               {step.label}
             </StepLabel>
-            <Card
-              variant="outlined"
-              sx={{ borderColor: "#81d4fa", my: 1, boxShadow: 2 }}
-            >
+            <Card variant="outlined" sx={{ borderColor: "#81d4fa", my: 1, boxShadow: 2 }}>
               <CardContent>{step.content}</CardContent>
             </Card>
           </Step>
@@ -708,7 +711,7 @@ export default function TracePage() {
 
       <Box mt={4} textAlign="center">
         <a
-          href="http://192.168.157.1:3001/trace/welcome"
+          href={`http://192.168.157.1:3001/trace/welcome`}
           target="_blank"
           rel="noopener noreferrer"
           style={{
@@ -718,7 +721,7 @@ export default function TracePage() {
             padding: "14px 28px",
             borderRadius: "12px",
             fontWeight: 600,
-            boxShadow: "0px 4px 12px rgba(0,0,0,0.1)",
+            boxShadow: "0px 4px 12px rgba(0,0,0,0.1)"
           }}
         >
           🔗 Join Us
@@ -727,6 +730,8 @@ export default function TracePage() {
     </Box>
   );
 }
+
+
 
 // "use client";
 
