@@ -5,6 +5,7 @@ import FeaturesFlow from "./features";
 import WorkflowSection from "./workflow";
 import SupplyChainHero from "./top/herosection";
 import { Box } from "@mui/material";
+import Footer from "../auth/layout/footer/footer";
 
 const Opening = () => {
   return (
@@ -26,6 +27,8 @@ const Opening = () => {
       <section id="workflow-section">
         <WorkflowSection />
       </section>
+
+      <Footer />
     </Box>
   );
 };

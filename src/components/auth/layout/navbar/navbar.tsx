@@ -252,7 +252,7 @@ export default function Navbar({
               }}
               onClick={() => router.push("/")}
             >
-              MedixCare
+              BlockxMedi
             </Typography>
           </Box>
 

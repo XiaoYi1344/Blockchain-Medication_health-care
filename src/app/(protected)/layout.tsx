@@ -1,13 +1,3 @@
-// import MainLayout from "@/app/layout/MainLayout";
-
-// export default function ProtectedLayout({
-//   children,
-// }: {
-//   children: React.ReactNode;
-// }) {
-//   return <MainLayout>{children}</MainLayout>;
-// }
-
 import MainLayout from "@/app/layout/MainLayout";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
