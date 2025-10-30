@@ -1,12 +1,11 @@
 import type { NextConfig } from "next";
-// import { i18n } from "./next-i18next.config";
 
 const nextConfig: NextConfig = {
-  // i18n,
+  output: "standalone", // 👈 Cần cho Netlify và Vercel build đúng
   turbopack: {
     root: "D:/ThucTapFrontEnd/DoAnNongNghiep",
   },
-  // Nếu muốn rewrite API qua ngrok (dev), uncomment:
+  // Nếu cần rewrite API:
   // async rewrites() {
   //   return [
   //     {
