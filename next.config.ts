@@ -1,11 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: "standalone", // 👈 Cần cho Netlify và Vercel build đúng
-  turbopack: {
-    root: "D:/ThucTapFrontEnd/DoAnNongNghiep",
-  },
-  // Nếu cần rewrite API:
+  reactStrictMode: true,
+  output: "standalone", // 👈 Bắt buộc cho Netlify/Vercel
+  // ⚙️ Nếu cần rewrite API sang ngrok hoặc backend riêng:
   // async rewrites() {
   //   return [
   //     {
