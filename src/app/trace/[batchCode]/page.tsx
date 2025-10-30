@@ -374,8 +374,9 @@
 //       </Card>
 //     </Box>
 //   );
-// }"use client";
+// }
 
+"use client";
 import { useState, useEffect } from "react";
 import {
   Box,
@@ -494,7 +495,7 @@ export default function TracePage() {
 
   const batchCode = params?.batchCode as string; // ép kiểu an toàn
   const token = searchParams?.get("token") || "";
-  
+
   const [data, setData] = useState<TraceResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
